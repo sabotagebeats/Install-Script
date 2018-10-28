@@ -1,32 +1,6 @@
 #!/bin/bash
 
-HEIGHT=15
-WIDTH=40
-CHOICE_HEIGHT=6
-BACKTITLE="Concierge Masternode Setup Wizard"
-TITLE="Concierge VPS Setup"
-MENU="Choose one of the following options:"
-
-OPTIONS=(1 "Install New VPS Server"
-         2 "Update to new version VPS Server"
-         3 "Start Concierge Masternode"
-	 4 "Stop Concierge Masternode"
-	 5 "Concierge Server Status"
-	 6 "Rebuild Concierge Masternode Index")
-
-
-CHOICE=$(whiptail --clear\
-		--backtitle "$BACKTITLE" \
-                --title "$TITLE" \
-                --menu "$MENU" \
-                $HEIGHT $WIDTH $CHOICE_HEIGHT \
-                "${OPTIONS[@]}" \
-                2>&1 >/dev/tty)
-
-clear
-case $CHOICE in
-        1)
-            echo Starting the install process.
+echo Starting the install process.
 echo Checking and installing VPS server prerequisites. Please wait.
 echo -e "Checking if swap space is needed."
 PHYMEM=$(free -g|awk '/^Mem:/{print $2}')
@@ -55,8 +29,7 @@ sudo apt update
 sudo apt-get -y upgrade
 sudo apt-get install git -y
 sudo apt-get install build-essential libtool autotools-dev automake pkg-config libssl-dev libevent-dev bsdmainutils -y
-sudo apt-get install libboost-system-dev libboost-filesystem-dev libboost-chrono-dev libboost-program-options-dev libboost-test-dev libboost-thread-dev -y
-sudo apt-get install libboost-all-dev -y
+#add libboost 5.8
 sudo apt-get install software-properties-common -y
 sudo add-apt-repository ppa:bitcoin/bitcoin -y
 sudo apt-get update
@@ -67,17 +40,6 @@ sudo apt-get install libqt5gui5 libqt5core5a libqt5dbus5 qttools5-dev qttools5-d
 sudo apt-get install libqt4-dev libprotobuf-dev protobuf-compiler -y
 clear
 echo VPS Server prerequisites installed.
-
-
-echo Configuring server firewall.
-sudo apt-get install -y ufw
-sudo ufw allow 51470
-sudo ufw allow ssh/tcp
-sudo ufw limit ssh/tcp
-sudo ufw logging on
-echo "y" | sudo ufw enable
-sudo ufw status
-echo Server firewall configuration completed.
 
 echo Downloading AquilaX install files.
 wget https://github.com/ConciergeCoin/Concierge/releases/download/V1.0.0.1/Concierge-linux.tar.gz
@@ -127,57 +89,4 @@ clear
 echo Concierge configuration file created successfully. 
 echo Concierge Server Started Successfully using the command ./concierged -daemon
 echo If you get a message asking to rebuild the database, please hit Ctr + C and run ./concierged -daemon -reindex
-echo If you still have further issues please reach out to support in our Discord channel. 
 echo Please use the following Private Key when setting up your wallet: $GENKEY
-            ;;
-	    
-    
-        2)
-sudo ./concierge-cli -daemon stop
-echo "! Stopping Concierge Daemon !"
-
-echo Configuring server firewall.
-sudo apt-get install -y ufw
-sudo ufw allow 51470
-sudo ufw allow ssh/tcp
-sudo ufw limit ssh/tcp
-sudo ufw logging on
-echo "y" | sudo ufw enable
-sudo ufw status
-echo Server firewall configuration completed.
-
-echo "! Removing Concierge !"
-sudo rm -rf concierge-install.sh*
-sudo rm -rf ubuntu.zip*
-sudo rm -rf concierged
-sudo rm -rf concierge-cli
-sudo rm -rf concierge-qt
-
-
-
-wget https://github.com/ConciergeCoin/Concierge/releases/download/V1.0.0.1/Concierge-linux.tar.gz
-echo Download complete.
-echo Installing Concierge.
-tar -xvf Concierge-linux.tar.gz
-chmod 775 ./concierged
-chmod 775 ./concierge-cli
-sudo rm -rf Concierge-linux.tar.gz
-./concierged -daemon
-echo Concierge install complete. 
-
-
-            ;;
-        3)
-            ./concierged -daemon
-		echo "If you get a message asking to rebuild the database, please hit Ctr + C and rebuild Concierge Index. (Option 6)"
-            ;;
-	4)
-            ./concierge-cli stop
-            ;;
-	5)
-	    ./concierge-cli getinfo
-	    ;;
-        6)
-	     ./concierged -daemon -reindex
-            ;;
-esac
